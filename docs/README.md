@@ -56,7 +56,10 @@ OTX documents it starts from, nordseele's shared settings store (draft, not
 implemented): [OTX_PROJECT_PROPOSAL.md](proposals/OTX_PROJECT_PROPOSAL.md)
 and [OTX_MODULE_GUIDELINES.md](proposals/OTX_MODULE_GUIDELINES.md), and
 [USB.md](proposals/USB.md), merging the four USB modules into one with
-run-time settings held by the brain (14 Oct 2026).
+run-time settings held by the brain (14 Oct 2026), and
+[PATTERN_PASTE.md](proposals/PATTERN_PASTE.md), pasting into a pattern that is
+not playing: a review of the investigation against the image, and the
+plan (18 Oct 2026; read from the code, not run).
 
 [proposals/remixes/](proposals/remixes/README.md): remix proposals, each
 taken on hardware to verified stable before it lands under `remixes/`.
