@@ -306,6 +306,11 @@ Not run on the unit: an unattended run with the BCR2000.
 
 ## Open
 
+- PTN+FUNC+RIGHT while playing retriggered "a step or two" at the press
+  on a MKII (field report, 24 Oct 2026, DIRECT_JUMP off). Not reproduced
+  yet; `tools/verify/verify_kits_retrig.py` is the instrument: it compares
+  the START writes after the press, and after a quick save and an
+  inactive-pattern paste, against a fork that presses nothing.
 - The arranger: its schedule runs in the tick, so its patterns play what
   is resident (counted as CNT_ISR). Not exercised.
 - PER TRACK scale and plays-free tracks: how many Parts the engine names

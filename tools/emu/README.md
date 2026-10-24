@@ -161,6 +161,12 @@ out/emu/ot_emu --image out/mainos_bus.bin --card out/card.img --set OCTABAM --pr
   - `--watch-mem ADDR,LEN[;...]` logs every write, with the PC. One range
     list per run; the last flag wins.
   - `--watch-read`, `--watch-pc`.
+  - `--trig-log` records every nonzero write to the per-track START byte
+    `0x46104d15` (a sequencer trig and a panel key's START alike) from the
+    boot, with its frame, and prints them at the end; `--sequencer` arms the
+    same log at the transport start. A `--live-script` run prints the frame
+    its script starts at, so a line at `<ms>` lands at that frame +
+    `ms·44100/16/1000`. `tools/verify/verify_kits_retrig.py` reads both.
   - `--dsp-watch core:X|Y|P:addr`.
   - `--dsp-pcwatch core:pc` shows the last 24 arrivals with a, b, x, y, r0,
     r4, r6, n4, sp, r2, m2, r1, n1, r7, m7, m0 and n7 (n7 = the frame count

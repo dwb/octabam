@@ -1279,6 +1279,7 @@ int main(int _argc, char** _argv)
 	std::string stockCode;		// LO-HI[;LO-HI...] -- stock's own code, for --foreign-writes
 	std::string watchRead;		// ADDR,LEN -- log the first 64 data READS of that range, with the reading PC
 	std::string watchPc;		// comma-separated addresses -- log registers there (route A's own flag)
+	bool trigLog = false;		// 24 Oct 2026: the M6c trig log (every nonzero write to the per-track START byte 0x46104d15) from the boot, printed at the end with its frames: --sequencer arms it at the transport start only, a --live-script run never did
 	bool namesEarly = false;	// write the SET/PROJECT names BEFORE the mount -- see O7b
 	std::string hostPortLog;	// every write into the DSP host-port window -> FILE (O8)
 	bool dsp = false;			// O8: put the two real DSP cores behind the host port
@@ -1376,6 +1377,7 @@ int main(int _argc, char** _argv)
 		else if(a == "--stock-code" && i + 1 < _argc)	stockCode = _argv[++i];
 		else if(a == "--watch-read" && i + 1 < _argc)	watchRead = _argv[++i];
 		else if(a == "--watch-pc" && i + 1 < _argc)	watchPc = _argv[++i];
+		else if(a == "--trig-log")			trigLog = true;
 		else if(a == "--names-early")			namesEarly = true;
 		else if(a == "--hostport-log" && i + 1 < _argc)	hostPortLog = _argv[++i];
 		else if(a == "--dsp")					dsp = true;
@@ -1450,6 +1452,7 @@ int main(int _argc, char** _argv)
 			"              [--preload ADDR=FILE[;...]]                       a file's bytes into memory before the boot (a staged OS image, NOR's 0x3ffc)\n"
 			"              [--foreign-writes ADDR,LEN,FILE --stock-code LO-HI[;...]]  writes into the range from a PC outside stock's code, to FILE (verify_reserve_writes)\n"
 			"              [--cs1-in FILE]                                   CS1 (0x10000000) from FILE before the boot: a power cycle with an earlier --mem-dump 0x10000000,0x100000\n"
+			"              [--trig-log]                                      every nonzero write to the per-track START byte 0x46104d15 from the boot, with its frame, at the end\n"
 			"              [--scenario \"LOG ARGS...\"]... [--scenario-jobs N]  load once, fork one child per scenario (stdout to LOG, ARGS its post-load options)\n");
 			return false;
 		}
@@ -1907,6 +1910,13 @@ int main(int _argc, char** _argv)
 				rtos.watchMem(wa, wl);
 				std::printf("watch-mem  : %#x..%#x\n", wa, wa + wl - 1);
 			}
+		}
+		if(trigLog)
+		{
+			// Before the boot, so a --scenario child inherits it from the
+			// fork (the child's own --trig-log changes nothing).
+			rtos.installTrigLog();
+			std::printf("trig-log   : %#x..%#x, nonzero writes, armed before the boot\n", ot::g_fwLiveNibble, ot::g_fwLiveNibble + 7);
 		}
 		std::string foreignFile;
 		if(!foreignWrites.empty())
@@ -2439,6 +2449,9 @@ int main(int _argc, char** _argv)
 					return 1;
 				}
 				const auto f0 = rtos.frameCount();
+				// A line at <ms> applies at frame f0 + ms·44100/16/1000 (msFrames): with
+				// this, a --trig-log frame is placed against the script's own times.
+				std::printf("live script: starts at frame %llu\n", static_cast<unsigned long long>(f0));
 				if(pcRing)
 					rtos.armPcRingNow(pcRing);
 				std::string line;
@@ -2975,6 +2988,17 @@ int main(int _argc, char** _argv)
 			}
 			std::printf("usb        : hold ended %s (%.1f s of machine time) -- %s\n", capped ? "on the wall cap" : "on the client's hangup",
 				rtos.ms() / 1000.0, rs == ot::Rtos::Stop::Gate ? "ok" : rtos.why().c_str());
+		}
+		if(trigLog)
+		{
+			// Frames are the frame engine's own count since the boot, the
+			// clock the live script's lines land on ("live script: starts at").
+			std::printf("trig-log   : %zu nonzero write(s) to %#x..%#x; the run ended at frame %llu, sample %.1f\n",
+				rtos.liveNibbleLog().size(), ot::g_fwLiveNibble, ot::g_fwLiveNibble + 7,
+				static_cast<unsigned long long>(rtos.frameCount()), rtos.sample());
+			for(const auto& w : rtos.liveNibbleLog())
+				std::printf("   trig frame %llu track %u byte %#04x at pc %#x\n",
+					static_cast<unsigned long long>(w.frame), w.index + 1, w.value, w.pc);
 		}
 		if(!watchPc.empty())
 		{

@@ -247,6 +247,7 @@ CI). The family, and what each proves:
 | `tools/verify/verify_midi.py` | the note→PITCH interval path, locally, via a build override |
 | `tools/verify/verify_dram_boot.py` | every DRAM remix booted under the port and its window read back |
 | `tools/verify/verify_kits.py` | KITS under the port: staging, LOAD/SAVE KIT, the files, migration and Octakit import |
+| `tools/verify/verify_kits_retrig.py` | KITS under the port, not in `make check`: PTN+FUNC+RIGHT, the quick save and the inactive-pattern paste while playing, each against a fork that presses nothing, by every nonzero write to the per-track START byte (`ot_emu --trig-log`); an extra or lost START before the pattern switch fails it |
 | `tools/verify/verify_dirty_state.py`, `verify_init_regs.py`, `verify_replaces.py`, `verify_labels.py`, `verify_mode_names.py`, `verify_hidden.py`, `verify_grains.py`, `verify_two_core.py`, `verify_one_bus.py`, the per-module render gates | every module silent from a garbage block; no init writes r1; no stock effect hijacked; selects print their words on the emulated firmware; the mode formatter renames; hidden engines; the grain lever; both cores; the bus |
 | `tools/remix/selftest.py` | the resource ledger catches every collision it claims to, and every shipped remix is clean (part of `make check`) |
 | `scripts/refhash.sh` | a change to the build (not a module) changed nothing: 24 configurations, artifacts and build reports, bit-identical; save a baseline on a tree you trust first |
